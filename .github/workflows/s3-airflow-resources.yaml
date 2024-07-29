@@ -1,0 +1,26 @@
+name: Update Airflow resources hosted in S3 
+on:
+  push:
+    branches:
+      - prod
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Connect to AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-session-name: aws-s3-content-session
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update static web files
+        run: aws s3 cp airflow_resources/ s3://${{ secrets.BUCKET_NAME }} --recursive
